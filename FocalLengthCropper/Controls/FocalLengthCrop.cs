@@ -10,8 +10,28 @@ namespace FocalLengthCropper.Controls
     class FocalLengthCrop : Border
     {
         private UIElement child = null;
-        private Point origin;
         private Point start;
+        private Point origin;
+
+        private double zoom = 1;
+        public double Zoom
+        {
+            get
+            {
+                return zoom;
+            }
+            set
+            {
+                zoom = value;
+                if (child != null)
+                {
+                    // reset zoom
+                    var st = GetScaleTransform(child);
+                    st.ScaleX = zoom;
+                    st.ScaleY = zoom;
+                }
+            }
+        }
 
         private TranslateTransform GetTranslateTransform(UIElement element)
         {
@@ -53,10 +73,9 @@ namespace FocalLengthCropper.Controls
                 group.Children.Add(tt);
                 child.RenderTransform = group;
                 child.RenderTransformOrigin = new Point(0.0, 0.0);
-                //this.MouseWheel += child_MouseWheel;
-                //this.MouseLeftButtonDown += child_MouseLeftButtonDown;
-                //this.MouseLeftButtonUp += child_MouseLeftButtonUp;
-                //this.MouseMove += child_MouseMove;
+                this.MouseLeftButtonDown += child_MouseLeftButtonDown;
+                this.MouseLeftButtonUp += child_MouseLeftButtonUp;
+                this.MouseMove += child_MouseMove;
                 //this.PreviewMouseRightButtonDown += new MouseButtonEventHandler(child_PreviewMouseRightButtonDown);
             }
         }
@@ -77,51 +96,27 @@ namespace FocalLengthCropper.Controls
             }
         }
 
-        public void Crop(int originFocalLength, int cropToFocalLength)
+        public void Crop(double originFocalLength, double cropToFocalLength)
         {
             if (child != null)
             {
                 var st = GetScaleTransform(child);
                 var tt = GetTranslateTransform(child);
+
+                this.Zoom = cropToFocalLength / originFocalLength;
             }
         }
 
         #region Child Events
 
-        private void child_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (child != null)
-            {
-                var st = GetScaleTransform(child);
-                var tt = GetTranslateTransform(child);
-
-                double zoom = e.Delta > 0 ? .2 : -.2;
-                if (!(e.Delta > 0) && (st.ScaleX < .4 || st.ScaleY < .4))
-                    return;
-
-                Point relative = e.GetPosition(child);
-                double abosuluteX;
-                double abosuluteY;
-
-                abosuluteX = relative.X * st.ScaleX + tt.X;
-                abosuluteY = relative.Y * st.ScaleY + tt.Y;
-
-                st.ScaleX += zoom;
-                st.ScaleY += zoom;
-
-                tt.X = abosuluteX - relative.X * st.ScaleX;
-                tt.Y = abosuluteY - relative.Y * st.ScaleY;
-            }
-        }
-
         private void child_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (child != null)
+            if (child != null && this.Zoom > 1)
             {
                 var tt = GetTranslateTransform(child);
-                start = e.GetPosition(this);
-                origin = new Point(tt.X, tt.Y);
-                this.Cursor = Cursors.Hand;
+                this.start = e.GetPosition(this);
+                this.origin = new Point(tt.X, tt.Y);
+                this.Cursor = Cursors.SizeAll;
                 child.CaptureMouse();
             }
         }

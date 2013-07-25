@@ -47,16 +47,23 @@ namespace FocalLengthCropper
         private void sldCropToFL_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             lblCropToFL.Content = String.Format("Crop to Focal Length: {0}mm", ((Slider)sender).Value);
+
+            if (gridControls.IsEnabled)
+            {
+                flcControl.Crop(sldOriginFL.Value, sldCropToFL.Value);
+                lblZoom.Content = String.Format("Zoom level: {0}", flcControl.Zoom);
+            }
         }
 
         private void sldOriginFL_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             lblOriginFL.Content = String.Format("Original Focal Length: {0}mm", ((Slider)sender).Value);
 
-        }
-
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
+            if (gridControls.IsEnabled)
+            {
+                flcControl.Crop(sldOriginFL.Value, sldCropToFL.Value);
+                lblZoom.Content = String.Format("Zoom level: {0}", flcControl.Zoom);
+            }
 
         }
     }
